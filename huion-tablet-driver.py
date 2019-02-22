@@ -406,7 +406,7 @@ def read_config():
 
     current_monitor_setup = config.get('config',
         'current_monitor_setup').split("#",1)[0].strip('[]').strip()
-    main.settings['total_screen_width'] = ast.literal_eval(config.get(current_monitor_setup,
+    main.settings['total_screen_width'] = eval(config.get(current_monitor_setup,
         'total_screen_width').split("#",1)[0].strip())
     main.settings['total_screen_height'] = ast.literal_eval(config.get(current_monitor_setup,
         'total_screen_height').split("#",1)[0].strip())
