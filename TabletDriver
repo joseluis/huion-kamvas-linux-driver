@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+# Adjust this as needed
+DRIVER="/usr/local/huion-linux-drivers/huion-tablet-driver.py"
+CONFIG_FILE="/usr/local/huion-linux-drivers/config.ini"
+
+T="256c:006e"
+BUS=$(lsusb | grep "$T" | sed -e 's|Bus \([0-9]*\) Device \([0-9]*\):.*$|\1|g')
+DEV=$(lsusb | grep "$T" | sed -e 's|Bus \([0-9]*\) Device \([0-9]*\):.*$|\2|g')
+
+sudo rmmod hid_uclogic 2>/dev/null
+sudo modprobe uinput
+sudo uclogic-probe $BUS $DEV | uclogic-decode
+sleep 3 # wait until device is released again
+
+# Create new pencil pointer on the tablet
+# The following code has been added into the Python code
+#INPD=$(xinput | grep 'Tablet Monitor Pen' | cut -f 2)
+#INPD=${INPD:3}
+#OUTPD=$(xrandr --listactivemonitors | sort | cut -f 6 -d ' ' | head -2 | tail -1)
+#xinput map-to-output ${INPD:-'15'} ${OUTPD:-'HDMI-1'}
+
+sudo python3 $DRIVER $CONFIG_FILE
