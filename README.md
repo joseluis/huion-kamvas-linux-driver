@@ -163,6 +163,36 @@ b9 = key 6             # turn right (krita)
 
 [See an example with multiple menus in the wiki](https://github.com/joseluis/huion-linux-drivers/wiki/Buttons-Shortcuts#12-example-with-multiple-menus)
 
+## Ubuntu example for Huion Kamvas Pro 12" GT-116
+*Tested on Ubuntu LTS 16.04*
+
+First, adapt the parameters in `config.ini` to your tablet model. In case of a Huion Kamvas Pro 12" (GT-116), you could change the following options to use the 5 buttons menu for Gimp and Krita.
+```ini
+current_tablet = [tablet_gt116]
+...
+enable_multi_pointer = true
+...
+start_menu = [menu_5b_multi]
+```
+
+After doing all the pre-requisites listed above, copy the 3 files `TabletDriver`, `config.ini` and `python-tablet-driver.py` into `/usr/local/huion-linux-driver`.
+```bash
+$ sudo mkdir /usr/local/huion-linux-driver
+$ sudo cp config.ini /usr/local/huion-linux-driver
+$ sudo cp python-table-driver.py /usr/local/huion-linux-driver
+$ sudo cp TabletDriver /usr/local/huion-linux-driver
+```
+
+Create a symbolic link to the launcher file `TabletDriver`:
+```bash
+$ sudo ln -s /usr/local/huion-linux-driver/TabletDriver /usr/local/bin/TabletDriver
+```
+
+Then you can launch the driver:
+```bash
+$ sudo TableDriver
+```
+The console screen lists the configuration options and then displays the current active menu. You can change the active menu using the lower left button.
 
 ## Help Welcomed [↑](#table-of-contents "Back to TOC")
 
