@@ -12,7 +12,7 @@
 - [Config Examples](#config-examples-)
   - [Multi-Monitor](#multi-monitor-)
   - [Shortcuts](#shortcuts-)
-- [Ubuntu Example for Huion Kamvas Pro 12"](#ubuntu-example-)
+- [Ubuntu Example for Huion Kamvas Pro 12"](#ubuntu-example-for-gt-116-)
 - [Help Welcomed](#help-welcomed-)
   - [To do](#to-do-)
 
@@ -164,7 +164,7 @@ b9 = key 6             # turn right (krita)
 
 [See an example with multiple menus in the wiki](https://github.com/joseluis/huion-linux-drivers/wiki/Buttons-Shortcuts#12-example-with-multiple-menus)
 
-## Ubuntu Example for Huion Kamvas Pro 12" [↑](#table-of-contents "Back to TOC")
+## Ubuntu Example for GT-116 [↑](#table-of-contents "Back to TOC")
 *Tested on Ubuntu LTS 16.04*
 
 First, adapt the parameters in `config.ini` to your tablet model. In case of a Huion Kamvas Pro 12" (GT-116), you could change the following options to use the 5 buttons menu for Gimp and Krita.
