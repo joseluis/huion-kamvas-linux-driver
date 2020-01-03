@@ -10,6 +10,7 @@ import math
 import numexpr
 from configparser import ConfigParser, ExtendedInterpolation
 from time import gmtime, strftime, sleep
+import atexit
 
 MENU = {}
 XINPUT_DEVICE_KEYWORD = "Tablet Monitor Pen"
@@ -270,6 +271,9 @@ def multi_monitor():
 # -----------------------------------------------------------------------------
 def multi_pointer(xinput_device_keyword=XINPUT_DEVICE_KEYWORD):
     """
+    Set up multi pointer:
+    - The mouse can be used on the main display and the tablet.
+    - The stylet is used on the tablet.
     """
 
     if not main.settings['enable_multi_pointer']:
@@ -277,13 +281,9 @@ def multi_pointer(xinput_device_keyword=XINPUT_DEVICE_KEYWORD):
 
     print("\nSetting up multiple pointers. . . ")
 
-    # Removing previous existing master
-    cmd = "xinput --remove-master HuionTablet"
-    if main.settings['debug_mode']:
-        print('» {}'.format(cmd))
-    os.popen(cmd)
-
     if main.settings['enable_multi_pointer']:
+        atexit.register(cleanup_multi_pointer)
+
         print("Create master input. . .")
         cmd = "xinput create-master 'HuionTablet'"
         if main.settings['debug_mode']:
@@ -301,6 +301,18 @@ def multi_pointer(xinput_device_keyword=XINPUT_DEVICE_KEYWORD):
         if main.settings['debug_mode']:
             print('» {}'.format(cmd))
         os.popen(cmd)
+
+
+# -----------------------------------------------------------------------------
+def cleanup_multi_pointer():
+    """
+    Cleanup multi pointer at program exit.
+    """
+    # Removing existing master
+    cmd = "xinput --remove-master HuionTablet"
+    if main.settings['debug_mode']:
+        print('» {}'.format(cmd))
+    os.popen(cmd)
 
 
 # -----------------------------------------------------------------------------
