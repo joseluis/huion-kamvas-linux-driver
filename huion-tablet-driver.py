@@ -314,7 +314,7 @@ def calibrate_mapping(xinput_device_keyword=XINPUT_DEVICE_KEYWORD):
         # Locate output device name
         xoutput_devices = os.popen("xrandr --listactivemonitors | sort | cut -f 6 -d ' ' ").read()
         xoutput_devices = list(filter(None, xoutput_devices.split('\n'))) # Assumes the first device is the main monitor and the second is the graphic monitor
-        xoutput_device = xoutput_devices[1]
+        xoutput_device = xoutput_devices[-1]
         
         # Lenovo's defaults
         if xinput_device == '':
