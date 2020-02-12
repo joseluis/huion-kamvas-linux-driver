@@ -224,7 +224,7 @@ def multi_monitor():
     """
     """
 
-    if not (main.settings['enable_multi_monitor'] and main.settings['screen']):
+    if not (main.settings['enable_multi_monitor'] and (main.settings['screen'] or main.settings['restrict_tablet_area'])):
         return
 
     print("\nSetting up multiple monitors. . . ")
@@ -239,9 +239,16 @@ def multi_monitor():
         except sp.CalledProcessError as e:
             run_error(e, cmd)
 
-    C0=(main.settings['screen_width'] / main.settings['total_screen_width'])
+    if main.settings['tablet_width']:
+        screen_width = main.settings['tablet_width']
+        screen_height = main.settings['tablet_height']
+    else:
+        screen_width = main.settings['screen_width']
+        screen_height = main.settings['screen_height']
+
+    C0=(screen_width / main.settings['total_screen_width'])
     C1=(main.settings['tablet_offset_x'] / main.settings['total_screen_width'])
-    C2=(main.settings['screen_height'] / main.settings['total_screen_height'])
+    C2=(screen_height / main.settings['total_screen_height'])
     C3=(main.settings['tablet_offset_y'] / main.settings['total_screen_height'])
 
     cmd='xinput set-prop "{}" --type=float "{}" {} 0 {} 0 {} {} 0 0 1'.format(
@@ -256,7 +263,7 @@ def multi_monitor():
         run_error(e, cmd)
 
     print('Mapped tablet area to "{}x{} + {}x{}"'.format(
-        main.settings['screen_width'], main.settings['screen_height'],
+        screen_width, screen_height,
         main.settings['tablet_offset_x'], main.settings['tablet_offset_y']))
 
 # -----------------------------------------------------------------------------
@@ -657,6 +664,11 @@ def read_config():
     # multi-monitor setup
 
     try:
+        main.settings['restrict_tablet_area'] = config.getboolean('config', 'restrict_tablet_area')
+    except:
+        main.settings['restrict_tablet_area'] = False
+
+    try:
         main.settings['enable_multi_monitor'] = config.getboolean('config', 'enable_multi_monitor')
     except:
         main.settings['enable_multi_monitor'] = False
@@ -682,6 +694,13 @@ def read_config():
             'xrandr_args').split("#",1)[0].strip()
     except:
         current_monitor_setup = "none"
+
+    try:
+        main.settings['tablet_width'] = numexpr.evaluate(config.get(current_monitor_setup,'tablet_W'))
+        main.settings['tablet_height'] = numexpr.evaluate(config.get(current_monitor_setup,'tablet_H'))
+    except:
+        main.settings['tablet_width'] = False
+        main.settings['tablet_height'] = False
 
     # tablet calibration
 
