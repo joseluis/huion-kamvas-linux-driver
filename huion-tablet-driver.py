@@ -282,7 +282,7 @@ def multi_pointer(xinput_device_keyword=XINPUT_DEVICE_KEYWORD):
     print("\nSetting up multiple pointers. . . ")
 
     if main.settings['enable_multi_pointer']:
-        atexit.register(cleanup_multi_pointer)
+        atexit.register(cleanup_multi_pointer, xinput_device_keyword)
 
         print("Create master input. . .")
         cmd = "xinput create-master 'HuionTablet'"
@@ -304,12 +304,14 @@ def multi_pointer(xinput_device_keyword=XINPUT_DEVICE_KEYWORD):
 
 
 # -----------------------------------------------------------------------------
-def cleanup_multi_pointer():
+def cleanup_multi_pointer(xinput_device_keyword=XINPUT_DEVICE_KEYWORD):
     """
     Cleanup multi pointer at program exit.
     """
+    master = os.popen("xinput | grep 'HuionTablet pointer' | cut -f 2").read()
+    master = master.split('\n')[0][3:]
     # Removing existing master
-    cmd = "xinput --remove-master HuionTablet"
+    cmd = "xinput remove-master {}".format(master)
     if main.settings['debug_mode']:
         print('» {}'.format(cmd))
     os.popen(cmd)
@@ -856,3 +858,4 @@ def read_config():
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
     main.run()
+
