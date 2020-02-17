@@ -13,7 +13,10 @@ from time import gmtime, strftime, sleep
 import atexit
 
 MENU = {}
-XINPUT_DEVICE_KEYWORD = "Tablet Monitor Pen"
+XINPUT_DEVICE_KEYWORD = "Tablet Monitor Pen"  # your pen's name in the terminal output of xinput
+XOUTPUT_DEVICE_ARGUMENT = -1  # defaults to final active monitor in terminal output of xrandr
+                              # ... change to select specific monitor in xoutput_devices
+
 
 # -----------------------------------------------------------------------------
 class main():
@@ -318,8 +321,11 @@ def cleanup_multi_pointer(xinput_device_keyword=XINPUT_DEVICE_KEYWORD):
 
 
 # -----------------------------------------------------------------------------
-def calibrate_mapping(xinput_device_keyword=XINPUT_DEVICE_KEYWORD):
-
+def calibrate_mapping(xinput_device_keyword=XINPUT_DEVICE_KEYWORD, xoutput_device_argument=XOUTPUT_DEVICE_ARGUMENT):
+    """
+    Maps tablet pen, specified by xinput_device_keyword, to a given monitor, specified by xoutput_device_argument.
+    If xoutput_device_argument=-1, the pen's bounds will calibrate to the last active monitor in xrandr.
+    """
     try:
         # Locate tablet pen device number
         xinput_device = os.popen("xinput | grep '%s' | cut -f 2" % xinput_device_keyword).read()
@@ -327,8 +333,8 @@ def calibrate_mapping(xinput_device_keyword=XINPUT_DEVICE_KEYWORD):
         
         # Locate output device name
         xoutput_devices = os.popen("xrandr --listactivemonitors | sort | cut -f 6 -d ' ' ").read()
-        xoutput_devices = list(filter(None, xoutput_devices.split('\n'))) # Assumes the first device is the main monitor and the second is the graphic monitor
-        xoutput_device = xoutput_devices[-1]
+        xoutput_devices = list(filter(None, xoutput_devices.split('\n')))  # lists all active monitors
+        xoutput_device = xoutput_devices[xoutput_device_argument]
         
         # Lenovo's defaults
         if xinput_device == '':
