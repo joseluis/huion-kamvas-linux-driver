@@ -10,8 +10,12 @@ import math
 import numexpr
 from configparser import ConfigParser, ExtendedInterpolation
 from time import gmtime, strftime, sleep
+import atexit
 
 MENU = {}
+XINPUT_DEVICE_KEYWORD = "Tablet Monitor Pen"  # your pen's name in the terminal output of xinput
+XOUTPUT_DEVICE_ARGUMENT = -1  # defaults to final active monitor in terminal output of xrandr
+                              # ... change to select specific monitor in xoutput_devices
 
 
 # -----------------------------------------------------------------------------
@@ -32,6 +36,8 @@ class main():
         setup_driver()
         calibrate()
         multi_monitor()
+        calibrate_mapping()
+        multi_pointer()
         main_loop()
 
 
@@ -180,6 +186,11 @@ def setup_driver():
     else:
         print("\tScreen                    disabled")
 
+    if main.settings['enable_multi_pointer']:
+        print("\tMulti Pointer             ENABLED")
+    else:
+        print("\tMulti Pointer             disabled")
+
     if main.settings['debug_mode']:
         print("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
         print("\t\t\t< DEBUG MODE ENABLED >")
@@ -258,6 +269,91 @@ def multi_monitor():
     print('Mapped tablet area to "{}x{} + {}x{}"'.format(
         main.settings['screen_width'], main.settings['screen_height'],
         main.settings['tablet_offset_x'], main.settings['tablet_offset_y']))
+
+
+# -----------------------------------------------------------------------------
+def multi_pointer(xinput_device_keyword=XINPUT_DEVICE_KEYWORD):
+    """
+    Set up multi pointer:
+    - The mouse can be used on the main display and the tablet.
+    - The stylet is used on the tablet.
+    """
+
+    if not main.settings['enable_multi_pointer']:
+        return
+
+    print("\nSetting up multiple pointers. . . ")
+
+    if main.settings['enable_multi_pointer']:
+        atexit.register(cleanup_multi_pointer, xinput_device_keyword)
+
+        print("Create master input. . .")
+        cmd = "xinput create-master 'HuionTablet'"
+        if main.settings['debug_mode']:
+            print('» {}'.format(cmd))
+        os.popen(cmd)
+
+        xinput_device = os.popen("xinput | grep '%s' | cut -f 2" % xinput_device_keyword).read()
+        xinput_device = xinput_device.split('\n')[0][3:]    # Chose the first instance of keyword, strips off "id="
+        master = os.popen("xinput | grep 'HuionTablet pointer' | cut -f 2").read()
+        master = master.split('\n')[0][3:]
+        if main.settings['debug_mode']:
+            print('» input device = {}'.format(xinput_device))
+   
+        cmd = "xinput reattach {} {}".format(xinput_device, master)
+        if main.settings['debug_mode']:
+            print('» {}'.format(cmd))
+        os.popen(cmd)
+
+
+# -----------------------------------------------------------------------------
+def cleanup_multi_pointer(xinput_device_keyword=XINPUT_DEVICE_KEYWORD):
+    """
+    Cleanup multi pointer at program exit.
+    """
+    master = os.popen("xinput | grep 'HuionTablet pointer' | cut -f 2").read()
+    master = master.split('\n')[0][3:]
+    # Removing existing master
+    cmd = "xinput remove-master {}".format(master)
+    if main.settings['debug_mode']:
+        print('» {}'.format(cmd))
+    os.popen(cmd)
+
+
+# -----------------------------------------------------------------------------
+def calibrate_mapping(xinput_device_keyword=XINPUT_DEVICE_KEYWORD, xoutput_device_argument=XOUTPUT_DEVICE_ARGUMENT):
+    """
+    Maps tablet pen, specified by xinput_device_keyword, to a given monitor, specified by xoutput_device_argument.
+    If xoutput_device_argument=-1, the pen's bounds will calibrate to the last active monitor in xrandr.
+    """
+    try:
+        # Locate tablet pen device number
+        xinput_device = os.popen("xinput | grep '%s' | cut -f 2" % xinput_device_keyword).read()
+        xinput_device = xinput_device.split('\n')[0][3:]    # Chose the first instance of keyword, strips off "id="
+        
+        # Locate output device name
+        xoutput_devices = os.popen("xrandr --listactivemonitors | sort | cut -f 6 -d ' ' ").read()
+        xoutput_devices = list(filter(None, xoutput_devices.split('\n')))  # lists all active monitors
+        xoutput_device = xoutput_devices[xoutput_device_argument]
+        
+        # Lenovo's defaults
+        if xinput_device == '':
+            xinput_device = 15
+        if xoutput_device == '':
+            xoutput_device = "HDMI-1"
+        
+        # Calibrate by mapping input to graphic pad output
+        os.system("xinput map-to-output %s %s" % (xinput_device, xoutput_device))
+        print()
+        sys.stdout.write("Calibrating graphics monitor via xinput mapping. . .")
+    except:
+        print("Error with calibrate_mapping")
+    
+    print("Done")
+    print("xinput_device = %s" % xinput_device)
+    print("xoutput_device = %s" % xoutput_device)
+    print("xoutput_mainscreen = %s" % xoutput_devices[0])
+
 
 # -----------------------------------------------------------------------------
 def calibrate():
@@ -385,7 +481,10 @@ def main_loop():
                     # convert to the exponent (0, 1, 2, 3, 4...)
                     BUTTON_VAL = int(math.log(BUTTON_VAL, 2))
                     if main.current_menu:
-                        do_shortcut("button", MENU[main.current_menu][BUTTON_VAL])
+                        try:
+                            do_shortcut("button", MENU[main.current_menu][BUTTON_VAL])
+                        except:
+                            print("Unknown key: MENU[%s][%d]" % (main.current_menu, BUTTON_VAL))
 
             # SCROLLBAR EVENT
 
@@ -498,7 +597,7 @@ def keypress(title, sequence):
     try:
         sp.run(cmd, shell=True, check=True)
     except sp.CalledProcessError as e:
-        run_error(e, cmd)
+        run_error(e, cmd, False)
 
 
 # -----------------------------------------------------------------------------
@@ -523,7 +622,7 @@ def switch_menu(new_menu):
         try:
             sp.run(cmd, shell=True, check=True)
         except sp.CalledProcessError as e:
-            run_error(e, cmd)
+            run_error(e, cmd, False)
 
 
 # -----------------------------------------------------------------------------
@@ -544,9 +643,15 @@ def read_config():
 
     sys.stdout.write("Reading configuration. . . ")
 
-    if os.path.exists('config.ini'):
+    # Config file can be given as command line parameter
+    config_file = ''
+    if len(sys.argv) > 1:
+        config_file = sys.argv[1]
+        print("Config file is %s" % config_file)
+
+    if os.path.exists('config.ini') or config_file != '':
         config = ConfigParser(interpolation=ExtendedInterpolation())
-        config.read('config.ini')
+        config.read([config_file, 'config.ini'])
     else:
         print("ERROR: Couldn't locate config.ini")
         sys.exit(2)
@@ -694,6 +799,12 @@ def read_config():
     except:
         current_monitor_setup = "none"
 
+    # multi pointer
+    try:
+        main.settings['enable_multi_pointer'] = config.get('config', 'enable_multi_pointer')
+    except:
+        main.settings['enable_multi_pointer'] = False
+
     # tablet calibration
 
     try:
@@ -764,3 +875,4 @@ def read_config():
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
     main.run()
+

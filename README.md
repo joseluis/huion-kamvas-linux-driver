@@ -12,6 +12,7 @@
 - [Config Examples](#config-examples-)
   - [Multi-Monitor](#multi-monitor-)
   - [Shortcuts](#shortcuts-)
+- [Ubuntu Example for Huion Kamvas Pro 12"](#ubuntu-example-for-gt-116-)
 - [Help Welcomed](#help-welcomed-)
   - [To do](#to-do-)
 
@@ -163,6 +164,36 @@ b9 = key 6             # turn right (krita)
 
 [See an example with multiple menus in the wiki](https://github.com/joseluis/huion-linux-drivers/wiki/Buttons-Shortcuts#12-example-with-multiple-menus)
 
+## Ubuntu Example for GT-116 [↑](#table-of-contents "Back to TOC")
+*Tested on Ubuntu LTS 16.04*
+
+First, adapt the parameters in `config.ini` to your tablet model. In case of a Huion Kamvas Pro 12" (GT-116), you could change the following options to use the 5 buttons menu for Gimp and Krita.
+```ini
+current_tablet = [tablet_gt116]
+...
+enable_multi_pointer = true
+...
+start_menu = [menu_5b_multi]
+```
+
+After doing all the pre-requisites listed above, copy the 3 files `TabletDriver`, `config.ini` and `python-tablet-driver.py` into `/usr/local/huion-linux-driver`.
+```bash
+$ sudo mkdir /usr/local/huion-linux-driver
+$ sudo cp config.ini /usr/local/huion-linux-driver
+$ sudo cp python-table-driver.py /usr/local/huion-linux-driver
+$ sudo cp TabletDriver /usr/local/huion-linux-driver
+```
+
+Create a symbolic link to the launcher file `TabletDriver`:
+```bash
+$ sudo ln -s /usr/local/huion-linux-driver/TabletDriver /usr/local/bin/TabletDriver
+```
+
+Then you can launch the driver:
+```bash
+$ sudo TableDriver
+```
+The console screen lists the configuration options and then displays the current active menu. You can change the active menu using the lower left button. This configuration creates 2 pointers: one for the mouse that you can keep on your primary screen and one for the tablet pencil that you use to draw on the tablet. The mouse can move on both screens: if you loose it, it could be on the tablet screen.
 
 ## Help Welcomed [↑](#table-of-contents "Back to TOC")
 
