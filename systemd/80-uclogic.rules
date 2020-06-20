@@ -1,0 +1,1 @@
+ACTION=="add", SUBSYSTEMS=="hid", DRIVERS=="uclogic", TAG+="systemd", ENV{SYSTEMD_WANTS}="huion-tablet-driver.service" 

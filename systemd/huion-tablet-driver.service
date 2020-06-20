@@ -1,0 +1,13 @@
+[Unit]
+Description=Service to start userspace huion driver in user session
+After=graphical.target
+
+[Service]
+Environment=DISPLAY=:0
+#replace %%USER%% for system user (e.g. /home/bob/.Xauthority)
+Environment=XAUTHORITY=/home/%%USER%%/.Xauthority
+#be shure to change permissions to root:root 755.
+ExecStart=/usr/local/bin/huion-tablet-driver.py
+
+[Install]
+WantedBy=default.target
