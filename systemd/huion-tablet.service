@@ -1,0 +1,8 @@
+[Unit]
+Description=service to start userspace huion driver
+
+[Service]
+ExecStart=huion-tablet-driver.py
+
+[Install]
+WantedBy=default.target

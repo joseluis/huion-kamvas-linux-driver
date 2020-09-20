@@ -548,6 +548,9 @@ def read_config():
     if os.path.exists('config.ini'):
         config = ConfigParser(interpolation=ExtendedInterpolation())
         config.read('config.ini')
+    elif os.path.exists('/etc/huion/config.ini'):
+        config = ConfigParser(interpolation=ExtendedInterpolation())
+        config.read('/etc/huion/config.ini')
     else:
         print("ERROR: Couldn't locate config.ini")
         sys.exit(2)
