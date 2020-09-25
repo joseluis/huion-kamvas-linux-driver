@@ -114,7 +114,7 @@ EndSection
 
 ### My tablet doesn't provide any inputs despite all my debugging efforts
 
-Maybe you're connecting the table through a USV hub, or USB docking station? This is known to have caused problems in the past. Try plugging the tablet directly to the computer.
+Maybe you're connecting the table through a USB hub, or USB docking station? This is known to have caused problems in the past. Try plugging the tablet directly to the computer.
 
 ### /usr/local/bin/uclogic-probe: not found
 
